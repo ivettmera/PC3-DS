@@ -1,5 +1,5 @@
 '''
-PATRÓN DE DISEÑO: DECORATOR (Decorador) - US-04 Recursos de Soporte
+PATRÓN DE DISEÑO: DECORATOR - US-04 Recursos de Soporte
 
 IProposalComponent: interfaz base del componente
 BaseProposalComponent: la ILC sin recursos extra

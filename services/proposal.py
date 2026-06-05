@@ -1,5 +1,5 @@
 '''
-PATRÓN DE DISEÑO: FAÇADE - US-02 Creación de ILC
+PATRÓN DE DISEÑO: FACADE - US-02 Creación de ILC
 
 ProposalFacade oculta la complejidad de crear y publicar una ILC, exponiendo una interfaz simple al cliente (ruta Flask)
   _ContentValidator : valida campos y longitud del articulado
@@ -47,8 +47,6 @@ class _DeadlineScheduler:
         proposal.deadline   = date.today() + timedelta(days=self.DAYS)
         print(f"[DeadlineScheduler] Inicio: {proposal.start_date}  |  Límite: {proposal.deadline}")
 
-
-# ── PATRÓN DE DISEÑO : Facade ────────────────────────────────────────────────────────────────────
 
 class ProposalFacade:
     '''
@@ -112,3 +110,26 @@ class ProposalFacade:
 
         print("[ProposalFacade] ── ILC publicada exitosamente ──\n")
         return True, "", proposal
+    
+    def create_draft(self, title: str, motivation: str, articles: str, category: str, collective_id: str, start_date: date, deadline: date) -> Proposal:
+        '''
+        Crea propuestas de prueba
+        '''
+        proposal = Proposal(
+            id            = str(uuid.uuid4())[:8].upper(),
+            title         = title.strip(),
+            motivation    = motivation.strip(),
+            articles      = articles.strip(),
+            category      = category,
+            collective_id = collective_id,
+            start_date    = start_date,
+            deadline      = deadline,
+        )
+        if deadline > date.today():
+            proposal.state = ProposalState.ACTIVA
+        else:
+            proposal.state = ProposalState.ARCHIVADA
+        
+
+        print(f"[ProposalFacade] Borrador creado — ID: {proposal.id}")
+        return proposal

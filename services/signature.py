@@ -1,6 +1,7 @@
 '''
 PATRÓN DE DISEÑO: PROXY de protección - US-03 Firma Digital
-RealSignatureService : persiste la firma en storage sin validación
+
+RealSignatureService : registra la firma, actualiza el contador y genera un hash simulado
 SignatureProxy : actua como un guardian queintercepta sign() y aplica dos controles:
     -la ILC debe estar en estado Activa
     -el ciudadano no puede haber firmado antes (unicidad)
