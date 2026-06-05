@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Nueva ILC – Voz del Ciudadano{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-dark text-white py-3">
+        <h4 class="mb-0 fs-5">Nueva Iniciativa Legislativa Ciudadana</h4>
+      </div>
+      <div class="card-body p-4">
+
+        <form method="POST" action="{{ url_for('create') }}">
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Título <span class="text-danger">*</span></label>
+            <input type="text" name="title" class="form-control"
+                   placeholder="Ej. Ley de acceso a ..."
+                   maxlength="200" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Categoría</label>
+            <select name="category" class="form-select">
+              <option value="Educación">Educación</option>
+              <option value="Salud">Salud</option>
+              <option value="Economía">Economía</option>
+              <option value="Medio Ambiente">Medio Ambiente</option>
+              <option value="Seguridad">Seguridad</option>
+              <option value="General" selected>General</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Exposición de Motivos <span class="text-danger">*</span></label>
+            <textarea name="motivation" class="form-control" rows="4"
+                      placeholder="Explique el problema que la iniciativa busca resolver..."
+                      required></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Artículos Propuesto <span class="text-danger">*</span></label>
+            <textarea name="articles" class="form-control" rows="6"
+                      placeholder="Artículo 1.— ..."
+                      required></textarea>
+            <div class="form-text">Máximo 50 000 caracteres.</div>
+          </div>
+
+          {% if collectives %}
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Colectivo</label>
+              <select name="collective_id" class="form-select">
+                {% for c in collectives %}
+                  <option value="{{ c.id }}">{{ c.name }} ({{ c.ruc }})</option>
+                {% endfor %}
+              </select>
+            </div>
+          {% else %}
+            <input type="hidden" name="collective_id" value="COL-001">
+          {% endif %}
+
+          <div class="d-flex gap-2 justify-content-end pt-2">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-dark">Publicar</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
