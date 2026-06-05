@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Panel Principal – Voz del Ciudadano{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Historial</h2>
+  <a href="{{ url_for('create') }}" class="btn btn-dark">+ Nueva ILC</a>
+</div>
+
+{% if proposals %}
+<div class="table-responsive">
+  <table class="table table-hover bg-white shadow-sm rounded align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>ID</th>
+        <th>Título</th>
+        <th>Categoría</th>
+        <th>Estado</th>
+        <th class="text-center" style="width: 25%;">Firmas</th>
+        <th class="text-center">Días restantes</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in proposals %}
+      {% set dias = (p.deadline - today).days if p.deadline else '-' %}
+      <tr>
+        <td><code>{{ p.id }}</code></td>
+        <td class="fw-bold">{{ p.title }}</td>
+        <td>{{ p.category }}</td>
+        <td>
+          {% if p.state.value == 'Activa' %}
+            <span class="badge bg-success">Activa</span>
+          {% elif p.state.value == 'Sellada' %}
+            <span class="badge bg-dark">Sellada 🔒</span>
+          {% elif p.state.value == 'Archivada' %}
+            <span class="badge bg-secondary">Archivada</span>
+          {% else %}
+            <span class="badge bg-warning text-dark">Borrador</span>
+          {% endif %}
+        </td>
+        <td class="text-center">
+          <div class="d-flex align-items-center gap-2">
+            <div class="progress flex-grow-1" style="height:8px">
+              <div class="progress-bar bg-success bar-sig"
+                   data-pct="{{ [p.signature_count / 250, 100] | min }}"></div>
+            </div>
+            <small class="text-muted">{{ p.signature_count }}/25 000</small>
+          </div>
+        </td>
+        <td class="text-center">
+          {% if dias == '-' %}–{% elif dias < 0 %}<span class="text-danger fw-bold">Vencida</span>{% else %}{{ dias }} días{% endif %}
+        </td>
+        <td>
+          <a href="{{ url_for('detail', proposal_id=p.id) }}"
+             class="btn btn-sm btn-outline-dark">Ver</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% else %}
+<div class="text-center py-5 text-muted">
+  <p class="fs-5">Aún no hay iniciativas publicadas.</p>
+</div>
+{% endif %}
+
+<script>
+  document.querySelectorAll('.bar-sig').forEach(function(el) {
+    el.style.width = el.dataset.pct + '%';
+  });
+</script>
+{% endblock %}
