@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}{{ proposal.title }} – Voz del Ciudadano{% endblock %}
+
+{% block content %}
+<!-- FILA SUPERIOR: Datos y Firmas -->
+<div class="row g-4">
+
+  <!-- Columna Izquierda: Datos de la Iniciativa -->
+  <div class="col-lg-7">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 fs-5">{{ proposal.title }}</h5>
+        {% if proposal.state.value == 'Activa' %}
+          <span class="badge bg-success">Activa</span>
+        {% elif proposal.state.value == 'Sellada' %}
+          <span class="badge bg-light text-dark">Sellada 🔒</span>
+        {% else %}
+          <span class="badge bg-secondary">{{ proposal.state.value }}</span>
+        {% endif %}
+      </div>
+      <div class="card-body p-4">
+        <p class="text-muted mb-2"><strong>Categoría:</strong> {{ proposal.category }}</p>
+        <p class="text-muted mb-3">
+          <strong>Plazo:</strong>
+          {% if proposal.deadline %}
+            {{ proposal.start_date }} → {{ proposal.deadline }}
+            {% set dias = (proposal.deadline - today).days %}
+            <span class="badge {% if dias < 10 and dias >= 0 %}bg-danger{% else %}bg-secondary{% endif %} ms-1">
+              {% if dias < 0 %}Vencida{% else %}{{ dias }} días restantes{% endif %}
+            </span>
+          {% else %}—{% endif %}
+        </p>
+
+        <hr>
+        <h6 class="fw-bold text-dark mt-3">Exposición de Motivos</h6>
+        <p class="text-secondary" style="line-height: 1.6;">{{ proposal.motivation }}</p>
+        
+        <h6 class="fw-bold text-dark mt-4">Articulado</h6>
+        <pre class="bg-light p-3 rounded border-0 small" style="white-space:pre-wrap; font-family: monospace;">{{ proposal.articles }}</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card shadow-sm border-0 h-100 text-center">
+      <div class="card-body p-4 d-flex flex-column justify-content-center">
+        <h2 class="display-4 fw-bold text-success mb-0">{{ sig_count }}</h2>
+        <p class="text-muted mb-3">firmas de <strong>25 000</strong> requeridas</p>
+        
+        <div class="progress mb-4" style="height:14px">
+          <div class="progress-bar bg-success progress-bar-striped progress-bar-animated bar-sig"
+               data-pct="{{ [sig_count / 250, 100] | min }}">
+          </div>
+        </div>
+
+        {% if proposal.state.value == 'Activa' %}
+          <form method="POST" action="{{ url_for('sign', proposal_id=proposal.id) }}">
+            {% if citizens %}
+            <div class="mb-3 text-start">
+              <label class="form-label small text-muted fw-semibold">Firmar como:</label>
+              <select name="citizen_id" class="form-select form-select-sm">
+                {% for c in citizens %}
+                  <option value="{{ c.id }}">{{ c.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% else %}
+              <input type="hidden" name="citizen_id" value="CIT-001">
+            {% endif %}
+            <button type="submit" class="btn btn-success btn-lg w-100 fw-bold shadow-sm">
+              Firmar Iniciativa
+            </button>
+          </form>
+          <small class="text-muted d-block mt-3 bg-light p-2 rounded" style="font-size: 0.8rem;">
+            Patrón Proxy: valida identidad y unicidad antes de registrar, previsto para ser utilizado con integración de RENIEC.
+          </small>
+        {% elif proposal.state.value == 'Sellada' %}
+          <div class="alert alert-dark mb-0 border-0 shadow-sm">
+            <span class="fw-bold">Iniciativa sellada y enviada al Congreso</span> <br>
+            <small class="text-muted">Hash: <code>{{ proposal.seal_hash }}</code></small>
+          </div>
+        {% else %}
+          <button class="btn btn-secondary btn-lg w-100" disabled>Firmas no disponibles</button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<small class="text-muted d-block mt-3 bg-light p-2 rounded" style="font-size: 0.8rem;">
+  Patrón Decorator: permite agregar funcionalidades adicionales a los recursos sin modificar su estructura.
+</small>
+
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-light d-flex justify-content-between align-items-center py-3 border-bottom">
+        <span class="fw-bold text-dark">Agregar Recursos</span>
+        <small class="text-muted">Aportes a la propuesta</small>
+      </div>
+      <div class="card-body p-4">
+
+        {% if proposal.state.value == 'Activa' %}
+        <form method="POST" action="{{ url_for('resource', proposal_id=proposal.id) }}" class="mb-4">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+              <label class="form-label small text-muted fw-semibold">Tipo de aporte</label>
+              <select name="tipo" class="form-select">
+                <option value="COMENTARIO">Comentario</option>
+                <option value="DOCUMENTO">Documento</option>
+                <option value="MODIFICACION">Modificación</option>
+              </select>
+            </div>
+            <div class="col-md-7">
+              <label class="form-label small text-muted fw-semibold">Contenido</label>
+              <input type="text" name="content" class="form-control" 
+                     placeholder="Escribe tu aporte o reseña aquí..." maxlength="2000" required>
+            </div>
+            <div class="col-md-2">
+              <button type="submit" class="btn btn-outline-dark w-100 fw-semibold">
+                Agregar
+              </button>
+            </div>
+          </div>
+        </form>
+        <hr class="text-muted opacity-25 my-4">
+        {% endif %}
+
+        <h5 class="fs-6 fw-bold mb-3">Historial de Recursos</h5>
+        {% if resources %}
+          <div class="row g-3">
+            {% for r in resources %}
+            <div class="col-md-6 col-lg-4">
+              <div class="border-0 rounded p-3 bg-light shadow-sm h-100 d-flex flex-column justify-content-between">
+                <div>
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-dark text-white font-monospace" style="font-size: 0.75rem;">
+                      {{ r.resource_type.value }}
+                    </span>
+                    <small class="text-muted" style="font-size: 0.75rem;">
+                      {{ r.created_at.strftime('%d/%m/%Y %H:%M') }}
+                    </small>
+                  </div>
+                  <p class="mb-0 text-secondary small" style="white-space: pre-line;">{{ r.content }}</p>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted small mb-0 text-center py-3">Aún no hay recursos para esta ILC.</p>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll('.bar-sig').forEach(function(el) {
+    el.style.width = el.dataset.pct + '%';
+  });
+</script>
+{% endblock %}
